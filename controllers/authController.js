@@ -1,5 +1,5 @@
-const userModel = require('../models/user')
-const jwt = require('jsonwebtoken')
+const UserModel = require('../models').User,
+  jwt = require('jsonwebtoken')
 
 class AuthController {
   login(req, res) {
@@ -10,24 +10,25 @@ class AuthController {
     if(!user.username || !user.password)
       return res.status(500).json({message: 'No username or password provided'})
 
-    let query =  userModel.findOne(
-      {username: user.username, password: user.password})
+      UserModel.findOne({where : {
+        username: req.body.username,
+        password: req.body.password
+      }})
+      .then(user => {
+        if(user) {
+          const token = jwt.sign({
+            username: user.username, 
+            password: user.password
+          }, process.env.SECRET)
 
-    query.then(user => {
-      if(!user)
-        return res.status(404).json({message: 'User not found'})
-      
-      const token = jwt.sign({
-          username: user.username, 
-          password: user.password
-        }, process.env.SECRET)
-
-      return res.json({token})
+          return res.json({token})
+        } else {
+          return res.status(404).json({message: 'User not found'})
+        }
+      })
 
 
-    })
     
-
   }
 }
 

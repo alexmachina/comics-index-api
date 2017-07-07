@@ -1,36 +1,56 @@
-const request = require('supertest')
-const assert = require('chai').assert
-const server = require('../../index.js')
-const userModel = require('../../models/user')
-const mongoose = require('mongoose')
+const request = require('supertest'),
+  assert = require('chai').assert,
+  server = require('../../index.js'),
+  userModel = require('../../models/user'),
+  faker = require('faker'),
+  fs = require('fs'),
+  Sequelize = require('sequelize')
 require('dotenv').config()
 
 describe('Authentication', () => {
-  it('Obtain authorization token', done => { 
-    mongoose.connect(process.env.TESTS_MONGODB_URL)
+  let sequelize = null
 
-    let user = new userModel({
-      fullname: 'Alex Alonso',
-      username: 'aalonso',
-      password: 'mypass',
-      email: 'alex.xmde@gmail.com'
-    })
+  beforeEach(done => {
+    fs.readFile('config/config.json', 'utf8', (err, data) => {
+      if (err)
+        throw new Error(err)
+      data = JSON.parse(data)
+      sequelize = new Sequelize(data.test.database, data.test.username, data.test.password, {
+        host: data.test.host,
+        dialect: data.test.dialect
+      })
 
-    user.save().then(user => {
-      request(server)
-        .post('/login')
-        .set('Accept','application/json')
-        .send(user)
-        .expect(200)
-        .end((err, res) => {
-          console.log('end')
-          if(err)
-            throw new Error(err)
-          assert.isDefined(res.body.token)
-
-          done()
+      done()
     })
   })
+
+  it('Obtain authorization token', done => { 
+
+    const user = {
+      fullname: faker.name.findName(),
+      email: faker.internet.email(),
+      username: faker.internet.userName(),
+      password: faker.internet.password()
+    }
+
+    let UserModel = userModel(sequelize, Sequelize)
+    sequelize.sync().then(() => {
+      UserModel.build(user).save().then(() => {
+        request(server)
+          .post('/login')
+          .set('Accept','application/json')
+          .send(user)
+          .expect(200)
+          .end((err, res) => {
+            console.log('end')
+            if(err)
+              throw new Error(err)
+            assert.isDefined(res.body.token)
+
+            done()
+          })
+      })
+    })
   })
 
   it('Receives 404 when user does not match', done => {

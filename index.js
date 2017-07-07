@@ -1,14 +1,18 @@
-const express = require('express')
-const mongoose = require('mongoose')
-const bodyParser = require('body-parser')
+const express = require('express'),
+  mongoose = require('mongoose'),
+  bodyParser = require('body-parser'),
+  testsRouter = require('./routes/tests'),
+  usersRouter = require('./routes/users')
+
 require('dotenv').config()
-const router = require('./router.js')
+
 
 
 let app = express()
 
 app.use(bodyParser.json())
-app.use(router)
+app.use(testsRouter)
+app.use(usersRouter)
 
 
 app.listen(process.env.PORT, (err) => {
