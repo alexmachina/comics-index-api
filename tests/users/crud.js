@@ -10,6 +10,7 @@ require('dotenv').config()
 
 describe('CRUD Operations on Users', () => {
   let sequelize = null
+  let aUser = {}
   beforeEach(done => {
 
     fs.readFile('config/config.json', 'utf8', (err, data) => {
@@ -24,19 +25,23 @@ describe('CRUD Operations on Users', () => {
       const UserModel = userModel(sequelize, Sequelize)
       promises = []
       sequelize.sync().then( () => {
-        for(let i = 0; i < 0; i++) {
-          const user = {
-            fullname: faker.name.findName(),
-            email: faker.internet.email(),
-            username: faker.internet.userName(),
-            password: faker.internet.password()
+        UserModel.truncate().then(() => {
+          for(let i = 0; i < 10; i++) {
+            const user = {
+              fullname: faker.name.findName(),
+              email: faker.internet.email(),
+              username: faker.internet.userName(),
+              password: faker.internet.password()
+            }
+
+            promises.push(UserModel.build(user).save())
           }
 
-          promises.push(UserModel.build(user).save())
-        }
-
-        Promise.all(promises).then(results => {
-          done()
+          Promise.all(promises).then(results => {
+            const randomId = Math.floor(Math.random() * (10 - 1) + 1) //A random number between 1 and 10
+            aUser = results[randomId].dataValues
+            done()
+          })
         })
       })
     })
@@ -65,6 +70,82 @@ describe('CRUD Operations on Users', () => {
   })
 
   it('Retrieves all users', done => {
+    const url = '/users'
 
+    request(server)
+      .get(url)
+      .expect(200)
+      .end((err, res) => {
+        if(err)
+          throw new Error(err)
+
+        assert.equal(res.body.length, 10)
+        done()
+      })
+
+  })
+
+  it('Updates an user', done => {
+    const url = `/user/${aUser.id}`
+
+    aUser.username = 'mynewusername'
+
+    request(server)
+      .put(url)
+      .set('Accept','application/json')
+      .send(aUser)
+      .expect(200)
+      .end((err, res) => {
+        if (err)
+          throw new Error(err)
+
+        assert.equal(res.body.username, 'mynewusername')
+        done()
+      })
+  })
+
+  it('Deletes an user', done => {
+    const url = `/user/${aUser.id}`
+    request(server)
+      .delete(url)
+      .expect(200)
+      .end((err, res) => {
+        if (err)
+          throw new Error(err)
+
+        assert.equal(res.body.message, `User ${aUser.id} deleted`)
+        done()
+      })
+  })
+
+  it('Retrieves a user page', done => {
+    const url = `/users/page/1`
+
+    request(server)
+      .get(url)
+      .expect(200)
+      .end((err, res) => {
+        if (err)
+          throw new Error(err)
+
+        assert.equal(10, res.body.length)
+        done()
+
+      })
+  })
+
+  it('Retrive the user´s count', done => {
+    const url = '/users/count'
+
+    request(server)
+      .get(url)
+      .expect(200)
+      .end((err, res) => {
+        if (err)
+          throw new Error(err)
+
+        assert.equal(10, res.body.count)
+        done()
+      })
   })
 })

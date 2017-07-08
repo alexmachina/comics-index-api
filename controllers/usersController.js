@@ -10,6 +10,39 @@ class UsersController {
       return res.status(500).json({message: err})
     })
   }
+
+  getUsers(req, res) {
+    UserModel.findAll().then(usersFound => {
+      return res.json(usersFound)
+    }).catch(err => {
+      return res.status(500).json({message: err})
+    })
+  }
+
+  updateUser(req, res) {
+    const user = req.body,
+      id = req.params.userId
+
+    UserModel.update(user, {
+      where: {id}
+    }).then(affectedRows => {
+      UserModel.findById(id).then(user => {
+      return res.json(user)
+      })
+    })
+  }
+
+  deleteUser(req, res) {
+    const id = req.params.userId
+
+    UserModel.destroy({
+      where: {id}
+    }).then(() => {
+      res.json({message: `User ${id} deleted`})
+    }).catch(err => {
+      res.status(500).json({message: err})
+    })
+  }
 }
 
-module.exports = new UsersController()
+  module.exports = new UsersController()
