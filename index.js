@@ -1,5 +1,4 @@
 const express = require('express'),
-  mongoose = require('mongoose'),
   bodyParser = require('body-parser'),
   testsRouter = require('./routes/tests'),
   usersRouter = require('./routes/users')
@@ -19,10 +18,7 @@ app.listen(process.env.PORT, (err) => {
   if (err)
     console.log(err)
 
-  mongoose.connect(process.env.MONGODB_URL)
-
   console.log('Listening to port: ',process.env.PORT)
-  console.log('Mongoose connected')
 
 
 })

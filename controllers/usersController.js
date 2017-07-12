@@ -43,6 +43,26 @@ class UsersController {
       res.status(500).json({message: err})
     })
   }
+
+  getPage(req, res) {
+    const offset = (req.params.page - 1 ) * 10,
+      limit = 10
+
+    UserModel.findAll({offset, limit})
+      .then(users => {
+        return res.json(users)
+      }).catch(err => {
+        return res.status(500).json({message : err})
+        })
+  }
+
+  getCount(req, res) {
+    UserModel.count().then(count => {
+      return res.json({count})
+    }).catch(err => {
+      return res.status(500).json({message: err})
+    })
+  }
 }
 
   module.exports = new UsersController()
