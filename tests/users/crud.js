@@ -1,8 +1,10 @@
 const assert = require('chai').assert,
   request = require('supertest'),
   server = require('../../index'),
-  userModel = require('../../models/user'),
+  UserModel = require('../../models').User,
+  CollectionModel = require('../../models').Collection
   Sequelize = require('sequelize'),
+  models = require('../../models')
   fs = require('fs'),
   faker = require('faker')
 require('dotenv').config()
@@ -11,38 +13,38 @@ require('dotenv').config()
 describe('CRUD Operations on Users', () => {
   let sequelize = null
   let aUser = {}
+  let token = null
   beforeEach(done => {
-
-    fs.readFile('config/config.json', 'utf8', (err, data) => {
-      if(err)
-        throw new Error(err)
-      data = JSON.parse(data)
-      
-      sequelize = new Sequelize(data.test.database, data.test.username, data.test.password, {
-        host: data.test.host,
-        dialect: data.test.dialect
-      })
-      const UserModel = userModel(sequelize, Sequelize)
       promises = []
-      sequelize.sync().then( () => {
-        UserModel.truncate().then(() => {
-          for(let i = 0; i < 10; i++) {
-            const user = {
-              fullname: faker.name.findName(),
-              email: faker.internet.email(),
-              username: faker.internet.userName(),
-              password: faker.internet.password()
-            }
+    models.sequelize.sync({force: true}).then( () => {
+      for(let i = 0; i < 10; i++) {
+        const user = {
+          fullname: faker.name.findName(),
+          email: faker.internet.email(),
+          username: faker.internet.userName(),
+          password: faker.internet.password()
+        }
 
-            promises.push(UserModel.build(user).save())
-          }
+        promises.push(UserModel.build(user).save())
+      }
 
-          Promise.all(promises).then(results => {
-            const randomId = Math.floor(Math.random() * (10 - 1) + 1) //A random number between 1 and 10
-            aUser = results[randomId].dataValues
+      Promise.all(promises).then(results => {
+        const randomId = Math.floor(Math.random() * (10 - 1) + 1) //A random number between 1 and 10
+        aUser = results[randomId].dataValues
+
+        request(server)
+          .post('/login')
+          .send({username: aUser.username, password: aUser.password})
+          .set('Accept','application/json')
+          .end((err, res) => {
+            if (err)
+              throw new Error(err)
+
+            token = res.body.token
             done()
           })
-        })
+
+
       })
     })
   })
@@ -59,6 +61,7 @@ describe('CRUD Operations on Users', () => {
     request(server)
       .post(url)
       .set('Accept','application/json')
+      .set('authorization', token)
       .send(newUser)
       .expect(200)
       .end((err, res) => {
@@ -74,6 +77,7 @@ describe('CRUD Operations on Users', () => {
 
     request(server)
       .get(url)
+      .set('authorization', token)
       .expect(200)
       .end((err, res) => {
         if(err)
@@ -92,6 +96,7 @@ describe('CRUD Operations on Users', () => {
 
     request(server)
       .put(url)
+      .set('authorization', token)
       .set('Accept','application/json')
       .send(aUser)
       .expect(200)
@@ -108,6 +113,7 @@ describe('CRUD Operations on Users', () => {
     const url = `/user/${aUser.id}`
     request(server)
       .delete(url)
+      .set('authorization', token)
       .expect(200)
       .end((err, res) => {
         if (err)
@@ -123,6 +129,7 @@ describe('CRUD Operations on Users', () => {
 
     request(server)
       .get(url)
+      .set('authorization', token)
       .expect(200)
       .end((err, res) => {
         if (err)
@@ -139,6 +146,7 @@ describe('CRUD Operations on Users', () => {
 
     request(server)
       .get(url)
+      .set('authorization',token)
       .expect(200)
       .end((err, res) => {
         if (err)

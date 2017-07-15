@@ -3,7 +3,6 @@ const express = require('express'),
   authController = require('../controllers/authController'),
   usersController = require('../controllers/usersController')
 
-router.post('/login', authController.login)
 
 router.post('/user', usersController.addUser) 
 router.get('/users', usersController.getUsers)
