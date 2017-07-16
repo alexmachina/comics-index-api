@@ -3,22 +3,15 @@ module.exports = function(sequelize, DataTypes) {
   var Collection = sequelize.define('Collection', {
     title: DataTypes.STRING,
     bundleSize: DataTypes.INTEGER,
-    userId: {
+    user_id:{
       type: DataTypes.INTEGER,
-      references: {
-        model: 'Users',
-        field: 'id'
-      },
-      onUpdate: 'cascade',
-      onDelete: 'cascade'
+      allowNull: false
     }
   }, {
+    underscored: true,
     classMethods: {
       associate: function(models) {
-        Collection.belongsTo(models.User, {
-          onDelete: 'CASCADE',
-          foreignKey: 'userId'
-        })
+        Collection.belongsTo(models.User)
 
       }
     }

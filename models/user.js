@@ -6,11 +6,10 @@ module.exports = function(sequelize, DataTypes) {
     fullname: DataTypes.STRING,
     email: DataTypes.STRING
   }, {
+    underscored: true,
     classMethods: {
       associate: function(models) {
-        User.hasMany(models.Collection, {
-          foreignKey: 'userId'
-        })
+        User.hasMany(models.Collection)
       }
     }
   });

@@ -14,8 +14,7 @@ describe('CRUD Operations on Users', () => {
   let sequelize = null
   let aUser = {}
   let token = null
-  beforeEach(done => {
-      promises = []
+  beforeEach(done => { promises = []
     models.sequelize.sync({force: true}).then( () => {
       for(let i = 0; i < 10; i++) {
         const user = {
@@ -109,20 +108,6 @@ describe('CRUD Operations on Users', () => {
       })
   })
 
-  it('Deletes an user', done => {
-    const url = `/user/${aUser.id}`
-    request(server)
-      .delete(url)
-      .set('authorization', token)
-      .expect(200)
-      .end((err, res) => {
-        if (err)
-          throw new Error(err)
-
-        assert.equal(res.body.message, `User ${aUser.id} deleted`)
-        done()
-      })
-  })
 
   it('Retrieves a user page', done => {
     const url = `/users/page/1`
@@ -156,4 +141,58 @@ describe('CRUD Operations on Users', () => {
         done()
       })
   })
+
+  it('Retrieve a user´s comics', done => {
+    const url = `/user/${aUser.id}/comics`
+
+    request(server)
+      .get(url)
+      .set('authorization', token)
+      .expect(200)
+      .end((err, res) => {
+        if (err)
+          throw new Error(err)
+
+        const comics = res.body
+
+        assert.isArray(comics)
+        assert.property(comics[0], 'title')
+        done()
+      })
+  })
+
+  it('Retrieve a user`s collections', done => {
+    const url = `/user/${aUser.id}/collections`
+
+    request(server)
+      .get(url) 
+      .set('authorization', token)
+      .expect(200)
+      .end((err, res) => {
+        if (err)
+          throw new Error(err)
+        const collections = res.body
+
+        assert.isArray(collections)
+        assert.property(collections[0], 'title')
+        assert.property(collections[0], 'bundleSize')
+        done()
+      })
+  })
+  
+  it('Deletes an user', done => {
+    const url = `/user/${aUser.id}`
+    request(server)
+      .delete(url)
+      .set('authorization', token)
+      .expect(200)
+      .end((err, res) => {
+        if (err)
+          throw new Error(err)
+
+        assert.equal(res.body.message, `User ${aUser.id} deleted`)
+        done()
+      })
+  })
+
 })

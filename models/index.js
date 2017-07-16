@@ -32,5 +32,20 @@ Object.keys(db).forEach(function(modelName) {
 
 db.sequelize = sequelize;
 db.Sequelize = Sequelize;
+//User - Collection
+db.User.hasMany(db.Collection)
+db.Collection.belongsTo(db.User)
+//User - Comic
+db.User.hasMany(db.Comic)
+db.Comic.belongsTo(db.User)
+//Comic - Artist
+db.Artist.belongsToMany(db.Comic, {through: 'comic_artists'})
+db.Comic.belongsToMany(db.Artist, {through: 'comic_artists'})
+//Comic - Writter
+db.Writter.belongsToMany(db.Comic, { through: 'comic_writters'})
+db.Comic.belongsToMany(db.Writter, { through: 'comic_writters' })
+//Comic - Collection
+db.Collection.hasMany(db.Comic)
+db.Comic.belongsTo(db.Collection)
 
 module.exports = db;

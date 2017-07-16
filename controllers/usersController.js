@@ -19,6 +19,39 @@ class UsersController {
     })
   }
 
+  getComics(req, res) {
+    const userId = req.params.userId
+
+    UserModel.findById(userId)
+      .then(user => {
+        user.getComics()
+          .then(comics => res.json(comics))
+          .catch(err => {
+            console.log(err)
+            res.status(500).json({message: err})
+          })
+      }).catch(err => {
+        console.log(err)
+        res.status(500).json({message: err})
+      })
+  }
+
+  getCollections(req, res) {
+    const userId = req.params.userId
+
+    UserModel.findById(userId)
+      .then(user => user.getComics())
+      .then(comics => res.json(comics))
+      .catch(err => {
+        console.log(err)
+        res.status(500).json({message: err})
+      })
+
+      
+      
+     
+  }
+
   updateUser(req, res) {
     const user = req.body,
       id = req.params.userId

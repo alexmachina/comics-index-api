@@ -4,8 +4,14 @@ module.exports = function(sequelize, DataTypes) {
     title: DataTypes.STRING,
     subtitle: DataTypes.STRING,
     pages: DataTypes.INTEGER,
-    collectionOrder: DataTypes.INTEGER
+    collectionOrder: DataTypes.INTEGER,
+
+    collection_id: {
+      type: DataTypes.INTEGER,
+      allowNull: true
+    }
   }, {
+    underscored: true,
     classMethods: {
       associate: function(models) {
         Comic.belongsToMany(models.Artist, {through: 'ComicArtist'})
